@@ -2,8 +2,8 @@ import requests
 from bs4 import BeautifulSoup
 import re
 import time
-
-s = requests.Session()
+import random
+from tqdm import tqdm
 
 headers = {
     'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
@@ -23,39 +23,33 @@ headers = {
     'upgrade-insecure-requests': '1',
     'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36'
 }
-
+s = requests.Session()
 s.headers.update(headers)
 
-
-# URL of the catalog page
 catalog_url = input(
     r"Enter the URL of the catalog page (exp: 'https://tw.linovelib.com/novel/2139/catalog'): ")
+pattern = r'[\t ，。,.:：;；!！?？—\-「」『』【】《》〈〉〔〕〖〗〘〙〚〛〝〞〟〰‥…‧﹏﹑﹔﹖﹪﹫？｡。\\/:*?"<>|\(\)─（）／＊、]'
 
-pattern = r'[\t ，。,.:：;；!！?？—\-「」『』【】《》〈〉〔〕〖〗〘〙〚〛〝〞〟〰‥…‧﹏﹑﹔﹖﹪﹫？｡。\\/:*?"<>|\(\)─]'
-
-# Send a GET request to the catalog page
 response = s.get(catalog_url)
 soup = BeautifulSoup(response.content, 'html.parser')
 title = soup.title.string.split('線上看')[0]
 title = re.sub(pattern, '', title)
-
 chapter_links = soup.find_all('a', class_='chapter-li-a')
 
-# Iterate through each chapter link
-for link in chapter_links:
+for link in tqdm(chapter_links):
     href = link.get('href')
     href = 'https://tw.linovelib.com' + href
     if href:
-        # Send a GET request to the chapter page
         try:
             chapter_response = s.get(href)
-            chapter_soup = BeautifulSoup(chapter_response.content, 'html.parser')
+            chapter_soup = BeautifulSoup(
+                chapter_response.content, 'html.parser')
         except:
             pass
-        # Find the element with id 'apage' and get its text
         apage_element = chapter_soup.find(id='apage')
         if apage_element:
             # save to file dataset\text\
             with open(f'dataset\\text\\{title}.txt', 'a',
                       encoding='utf-8') as file:
                 file.write(re.sub(pattern, '', apage_element.text))
+        time.sleep(random.random()+1 * 4)
