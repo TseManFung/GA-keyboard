@@ -4,7 +4,7 @@ from random import choice
 import displaykeyboard
 
 last_changjie = ""
-pattern = r'[\t ，。,.:：;；!！?？—\-「」『』【】《》〈〉〔〕〖〗〘〙〚〛〝〞〟〰‥…‧﹏﹑﹔﹖﹪﹫？｡。\\/:*?"<>|\(\)─（）／＊、]'
+pattern = r'[\t ，。,.:：;；!！?？—\-「」『』【】《》〈〉〔〕〖〗〘〙〚〛〝〞〟〰‥…‧﹏﹑﹔﹖﹪﹫？｡。\\/:*?"<>|\(\)─（）／＊、]★'
 def chinese_to_unicode(char):
     return f'{ord(char):04x}'
 
@@ -31,14 +31,21 @@ def check_total_distance(chinese_str):
         len_current_key = len(current_key_chanjie)
         for key in range(min(1, len_current_key - 1), len_current_key):
             total_distance += displaykeyboard.distance(
-                displaykeyboard.init_keyboard, current_key_chanjie[key - 1],
+                displaykeyboard.keyboard, current_key_chanjie[key - 1],
                 current_key_chanjie[key])
         last_changjie = current_key_chanjie[-1]
     return total_distance
 
 def test():
-    chinese_str = "[(灶，。,.:：)]好"
+    chinese_str = "儘管如此我還是毫不猶豫地鑽過最後一張網雖然有股想要回頭的衝動"
+    keyboard = displaykeyboard.init_keyboard()
+    displaykeyboard.display_keyboard(keyboard)
+    print(f"Total distance: {check_total_distance(chinese_str)}")
 
+    displaykeyboard.swap(keyboard, 'Q', 'J')
+    displaykeyboard.swap(keyboard, 'A', 'K')
+    displaykeyboard.swap(keyboard, 'R', 'B')
+    displaykeyboard.display_keyboard(keyboard)
     print(f"Total distance: {check_total_distance(chinese_str)}")
 
 

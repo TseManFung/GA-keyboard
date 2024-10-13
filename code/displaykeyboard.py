@@ -3,12 +3,14 @@ from math import sqrt
 
 rows_num_keys = [0, 10, 19, 26]
 
-init_keyboard = {
+default_keyboard = {
     'Q': 0, 'W': 1, 'E': 2, 'R': 3, 'T': 4, 'Y': 5, 'U': 6, 'I': 7, 'O': 8, 'P': 9,
     'A': 10, 'S': 11, 'D': 12, 'F': 13, 'G': 14, 'H': 15, 'J': 16, 'K': 17, 'L': 18,
     'Z': 19, 'X': 20, 'C': 21, 'V': 22, 'B': 23, 'N': 24, 'M': 25
 }
 
+def init_keyboard():
+    return default_keyboard.copy()
 
 def display_keyboard(keyboard):
     key_list = list(keyboard.keys())
@@ -40,11 +42,12 @@ def swap(keyboard, w1, w2):
 
 
 def main():
-    display_keyboard(init_keyboard)
-    print(distance(init_keyboard, 'Q', 'Z'))
-    swap(init_keyboard, 'Q', 'Z')
-    display_keyboard(init_keyboard)
-    print(distance(init_keyboard, 'Q', 'Z'))
+    init_keyboard1 = init_keyboard()
+    display_keyboard(init_keyboard1)
+    print(distance(init_keyboard1, 'A', 'J'))
+    swap(init_keyboard1, 'Q', 'J')
+    display_keyboard(init_keyboard1)
+    print(distance(init_keyboard1, 'A', 'J'))
 
 
 if __name__ == "__main__":
