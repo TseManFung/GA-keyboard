@@ -1,7 +1,9 @@
 # encoding: utf-8
 import json,os
 from random import choice
-import random
+import matplotlib.pyplot as plt
+import pandas as pd
+import threading
 from displaykeyboard import Keyboard
 
 
@@ -70,6 +72,11 @@ def random_text(length:int=5000):
         selected_text = ''.join(selected_lines)
     return selected_text
 
+# 最快+對照,平均+對照,對照-最快,對照-平均
+
+# GA
+
+
 def test():
     chinese_str = random_text()
     kb = Keyboard()
@@ -87,6 +94,7 @@ def main():
     global unicode2cangjie
     unicode2cangjie = read_json(r"dataset\cangjie\unicode2cangjie.json")
     test()
+
 
 
 if __name__ == "__main__":

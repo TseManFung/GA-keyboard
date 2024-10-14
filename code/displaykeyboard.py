@@ -1,8 +1,18 @@
 # encoding: utf-8
 from math import sqrt
+import json
 
 
 class Keyboard():
+    @classmethod
+    def set_new_keyboard(*DNA_key_list):
+        new_keyboard = {}
+        for DNA_key in DNA_key_list:
+            for key,pos in DNA_key:
+                if pos not in new_keyboard.values():
+                    new_keyboard[key] = pos
+        return new_keyboard
+
     def __init__(self, finger_group: list = None, finger_default_key=None, keyboard: dict = None):
         if finger_group:
             self.finger_group = finger_group
@@ -28,16 +38,17 @@ class Keyboard():
     rows_num_keys = [0, 10, 19, 26]
     row_start = [0, 1, 3]
 
-    def display_keyboard(self):
+    def __str__(self):
+        s = ""
         key_list = list(self.keyboard.keys())
         pos_list = list(self.keyboard.values())
         row = 0
         for row_num in range(3):
-            print(" "*(row+row-1), end="")
+            s += "\n"+" "*(row+row-1)
             for key_pos in range(self.rows_num_keys[row], self.rows_num_keys[row+1]):
-                print("   "+key_list[pos_list.index(key_pos)], end="")
-            print("")
+                s+="   "+key_list[pos_list.index(key_pos)]
             row += 1
+        return s
 
     def get_y(self, w_pos):
         return (w_pos > 18) + (w_pos > 9)
@@ -60,13 +71,28 @@ class Keyboard():
             return 0
         return self.distance(key, last_finger_key)
 
+    def get_finger_key_group(self, finger):
+        return {key:self.keyboard[key] for key in self.keyboard.keys() if self.finger_group[self.keyboard[key]] == finger}
+
     def swap(self, w1, w2):
         self.keyboard[w1], self.keyboard[w2] = self.keyboard[w2], self.keyboard[w1]
 
+    def save(self, filename):
+        data = {'Keybard':self.keyboard, 'FingerGroup':self.finger_group, 'FingerKey':self.finger_key}
+        with open(r'dataset/keyboard/'+filename+".json", 'w') as file:
+            file.write(json.dumps(data))
+    
+    def read(self, filename):
+        with open(r'dataset/keyboard/'+filename+".json", 'r') as file:
+            data = json.loads(file.read())
+            self.keyboard = data['Keyboard']
+            self.finger_group = data['FingerGroup']
+            self.finger_key = data['FingerKey']
+
 
 def main():
-    keyboard1 = Keyboard()
-    keyboard1.display_keyboard()
+    kb = Keyboard()
+    print(kb.get_finger_key_group(0))
 
 
 if __name__ == "__main__":
