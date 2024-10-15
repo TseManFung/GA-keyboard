@@ -6,8 +6,8 @@ import pandas as pd
 import gc
 from displayKeyboard import Keyboard
 from matplotlib.animation import FuncAnimation
-import threading
 import datetime
+from tqdm import tqdm
 class GA:
     def chinese_to_unicode(self,char):
         return f'{ord(char):04x}'
@@ -31,7 +31,7 @@ class GA:
                 continue
 
             for key in current_key_chanjie:
-                if key == ',':
+                if key == ','or key == '，':
                     print(f"===\nError: {char} not found in keyboard")
                     print(f"Error: {self.chinese_to_unicode(char)} not found in keyboard")
                     print(f"Error: {current_key_chanjie} not found in keyboard\n===")
@@ -57,33 +57,36 @@ class GA:
             selected_text = ''.join(selected_lines)
         return selected_text
 
-    def show_result(self,frame):        
-        self.genetic_algorithm()
-        result = pd.DataFrame({'Fastest': self.Fastest, 'Average': self.Average, 'Control': self.Control})
-        
+    def init_func(self):
         plt.cla()
-        line1, = plt.plot(result.index, result.Fastest, label=f'Fastest: {self.Fastest[-1] if self.Fastest else "no data"}', color='red')
-        line2, = plt.plot(result.index, result.Average, label=f'Average: {self.Average[-1] if self.Average else "no data"}', color='blue')
-        line3, = plt.plot(result.index, result.Control, label=f'Control: {self.Control[-1] if self.Control else "no data"}', color='black')
-        
         plt.xlabel('Number of iterations')
         plt.gca().get_xaxis().set_major_formatter(plt.FuncFormatter(lambda x, loc: "{:d}".format(int(x))))
         plt.ylabel('Total distance')
         plt.gca().get_yaxis().set_major_formatter(plt.FuncFormatter(lambda x, loc: "{:,}".format(int(x))))
         plt.title(f'Fastest Keyboard: {self.Top_keyboard[0]}', loc='left')
         plt.legend(loc='lower left')
+
+    def show_result(self, frame):
+        self.genetic_algorithm()
+        result = pd.DataFrame({'Fastest': self.Fastest, 'Average': self.Average, 'Control': self.Control})
+        
+        line1, = plt.plot(result.index, result.Fastest, label=f'Fastest: {self.Fastest[-1] if self.Fastest else "no data"}', color='red')
+        line2, = plt.plot(result.index, result.Average, label=f'Average: {self.Average[-1] if self.Average else "no data"}', color='blue')
+        line3, = plt.plot(result.index, result.Control, label=f'Control: {self.Control[-1] if self.Control else "no data"}', color='black')
+        
+        plt.legend(loc='lower left')
         
         return line1, line2, line3
 
     # GA
     def Top4(self,population: list[Keyboard], chinese_str:str):
-        for kb in population:
+        for kb in tqdm(population,desc='calculate distance'):
             kb.Total_Distance = self.check_total_distance(kb, chinese_str)
         population.sort(key=lambda x: x.Total_Distance)
         self.Fastest.append(population[0].Total_Distance)
         self.Average.append(sum([kb.Total_Distance for kb in population])/len(population))
         self.Control.append(self.check_total_distance(self.control_kb, chinese_str))
-        return population[:4]
+        self.Top_keyboard = population[:4]
 
     def crossover(self,population_size:int,Top_keyboard: list[Keyboard]):
         next_gen = []
@@ -91,7 +94,7 @@ class GA:
         for kb in Top_keyboard:
             DNA_list.append(kb.get_finger_key_group())
         DNA_fragment_length = len(DNA_list[0])
-        for i in range(population_size):
+        for i in tqdm(range(population_size),desc='Crossover'):
             DNA_fragment = []
             for fragment_index in range(DNA_fragment_length):
                 DNA_fragment.append(choice(DNA_list)[fragment_index])
@@ -118,42 +121,33 @@ class GA:
                 os.makedirs(rf'result/{t}')
             self.Top_keyboard[0].save("keyboard",t)
             self.fig.savefig(rf'result/{t}/chart_{t}.png')
-            self.generations = 0
-            return
-        if self.generations == 0:
+            self.anim.event_source.stop()
             return
         if not self.Fastest:
             population = self.init_population()
-            self.Top_keyboard = self.Top4(population, self.random_text())
+            self.Top4(population, self.random_text(self.text_length))
         population = self.crossover(self.population_size,self.Top_keyboard)
-        self.Top_keyboard = self.Top4(population, self.random_text())
+        self.Top4(population, self.random_text(self.text_length))
         gc.collect()
         self.generations -= 1
 
-    def __init__(self,population_size:int=None,generations:int=None):
-        if not population_size:
-            population_size = 256
-        else:
-            self.population_size = population_size
-        if not generations:
-            generations = 1000
-        else:
-            self.generations = generations
+    def __init__(self, population_size: int = 256, generations: int = 1000,text_length:int=5000):
+        self.population_size = population_size
+        self.generations = generations
+        self.text_length = text_length
 
     def main(self):
         self.unicode2cangjie = self.read_json(r"dataset\cangjie\unicode2cangjie.json")
-        self.pattern = r'[\t ，。,.:：;；!！?？—\-「」『』【】《》〈〉〔〕〖〗〘〙〚〛〝〞〟〰‥…‧﹏﹑﹔﹖﹪﹫？｡。\\/:*?"<>|\(\)─（）／＊、]★'
-
+        self.pattern = r'[\t ，。,，.:：;；!！?？—\-「」『』【】《》〈〉〔〕〖〗〘〙〚〛〝〞〟〰‥…‧﹏﹑﹔﹖﹪﹫？｡。\\/:*?"<>|\(\)─（）／＊、]★'
         self.Fastest = []
         self.Average = []
         self.Control = []
         self.control_kb = Keyboard()
         self.Top_keyboard = [self.control_kb]
         self.fig, ax = plt.subplots()
-        ani = FuncAnimation(self.fig, self.show_result, frames=100, interval=200, blit=False) 
+        self.ani =FuncAnimation(self.fig, self.show_result, frames=100, interval=200, blit=False, init_func=self.init_func)
         plt.show()
         
     
 if __name__ == "__main__":
-    t1 = threading.Thread(target=GA().main)
-    t1.start()
+    GA().main()
