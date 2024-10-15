@@ -2,16 +2,23 @@
 from math import sqrt
 import json
 
-
 class Keyboard():
     @classmethod
-    def set_new_keyboard(*DNA_key_list):
+    def set_new_keyboard(cls,DNA_key_list:list):
         new_keyboard = {}
         for DNA_key in DNA_key_list:
-            for key,pos in DNA_key:
+            for key,pos in DNA_key.items():
                 if pos not in new_keyboard.values():
                     new_keyboard[key] = pos
+        set_pos=set(new_keyboard.values())
+        set_key=set(new_keyboard.keys())
+        unset_key = set('ABCDEFGHIJKLMNOPQRSTUVWXYZ') - set_key
+        unset_value = set(range(26)) - set_pos
+        for key in unset_key:
+            new_keyboard[key] = unset_value.pop()
         return new_keyboard
+
+    Total_Distance = 0
 
     def __init__(self, finger_group: list = None, finger_default_key=None, keyboard: dict = None):
         if finger_group:
@@ -63,27 +70,35 @@ class Keyboard():
         return sqrt((key1_x - key2_x)**2 + (4*key1_y - 4*key2_y)**2)
 
     def finger_distance(self, key):
-        key_pos = self.keyboard[key]
-        finger = self.finger_group[key_pos]
+        try:
+            key_pos = self.keyboard[key]
+            finger = self.finger_group[key_pos]
+        except KeyError:
+            print(f"Key {key} not found in keyboard")
+            return 0
         last_finger_key = self.finger_key[finger]
         self.finger_key[finger] = key
         if last_finger_key is None:
             return 0
         return self.distance(key, last_finger_key)
 
-    def get_finger_key_group(self, finger):
-        return {key:self.keyboard[key] for key in self.keyboard.keys() if self.finger_group[self.keyboard[key]] == finger}
+    def get_finger_key_group(self):
+        key_gp_by_finger = [{}, {}, {}, {}, {}, {}, {}, {}]
+        for key in self.keyboard.keys():
+            pos = self.keyboard[key]
+            key_gp_by_finger[self.finger_group[pos]][key] = pos
+        return key_gp_by_finger
 
     def swap(self, w1, w2):
         self.keyboard[w1], self.keyboard[w2] = self.keyboard[w2], self.keyboard[w1]
 
-    def save(self, filename):
+    def save(self, filename,t):
         data = {'Keybard':self.keyboard, 'FingerGroup':self.finger_group, 'FingerKey':self.finger_key}
-        with open(r'dataset/keyboard/'+filename+".json", 'w') as file:
+        with open(rf'result/{t}/{filename}_{t}.json', 'w') as file:
             file.write(json.dumps(data))
     
     def read(self, filename):
-        with open(r'dataset/keyboard/'+filename+".json", 'r') as file:
+        with open(filename, 'r') as file:
             data = json.loads(file.read())
             self.keyboard = data['Keyboard']
             self.finger_group = data['FingerGroup']
@@ -92,7 +107,7 @@ class Keyboard():
 
 def main():
     kb = Keyboard()
-    print(kb.get_finger_key_group(0))
+    print(kb.get_finger_key_group())
 
 
 if __name__ == "__main__":
