@@ -67,8 +67,8 @@ class GA:
         plt.gca().get_yaxis().set_major_formatter(plt.FuncFormatter(lambda x, loc: "{:,}".format(int(x))))
         plt.title(f'Fastest Keyboard: {self.Top_keyboard[0]}', loc='left')
         
-        line1, = plt.plot(result.index,result.Control-result.Fastest, label=f'Fastest: {self.Fastest[-1] if self.Fastest else "no data"}', color='red')
-        line2, = plt.plot(result.index,result.Control-result.Average, label=f'Average: {self.Average[-1] if self.Average else "no data"}', color='blue')
+        line1, = plt.plot(result.index,result.Fastest, label=f'Fastest: {self.Fastest[-1] if self.Fastest else "no data"}', color='red')
+        line2, = plt.plot(result.index,result.Average, label=f'Average: {self.Average[-1] if self.Average else "no data"}', color='blue')
         line3, = plt.plot(result.index,result.Control , label=f'Control: {self.Control[-1] if self.Control else "no data"}', color='black')
         
         plt.legend(loc='lower left')
@@ -88,7 +88,7 @@ class GA:
         self.Fastest.append(population[0].Total_Distance)
         self.Average.append(sum([kb.Total_Distance for kb in population])/len(population))
         self.Control.append(self.check_total_distance(self.control_kb, chinese_str))
-        self.Top_keyboard = population[:4]
+        self.Top_keyboard = population[:int(10*(1-10*self.mutation_rate))]+self.random_keyboard(int(10*self.mutation_rate))
 
     def crossover(self,population_size:int,Top_keyboard: list[Keyboard]):
         next_gen = []
@@ -107,13 +107,18 @@ class GA:
         kb_pop =[]
         kb = Keyboard()
         kb_pop.append(kb)
-        key_list = list(kb.keyboard.keys())
-        for i in range(starting_population-1):
+        self.key_list = list(kb.keyboard.keys())
+        kb_pop += self.random_keyboard(starting_population-1)
+        return kb_pop
+    
+    def random_keyboard(self,n:int):
+        kb_pop =[]
+        for i in range(n):
             kb_pop.append(Keyboard())
             for _ in range(1000):
-                kb_pop[-1].swap(choice(key_list), choice(key_list))
+                kb_pop[-1].swap(choice(self.key_list), choice(self.key_list))
         return kb_pop
-            
+
 
     def genetic_algorithm(self):
         if self.generations == 1:
@@ -133,10 +138,11 @@ class GA:
         gc.collect()
         self.generations -= 1
 
-    def __init__(self, population_size: int = 256, generations: int = 1000,text_length:int=5000):
+    def __init__(self, population_size: int = 256, generations: int = 1000,text_length:int=5000,mutation_rate:float=0.2):
         self.population_size = population_size
         self.generations = generations
         self.text_length = text_length
+        self.mutation_rate = mutation_rate
 
     def main(self):
         self.unicode2cangjie = self.read_json(r"dataset\cangjie\unicode2cangjie.json")
@@ -152,4 +158,4 @@ class GA:
         
     
 if __name__ == "__main__":
-    GA(10,10).main()
+    GA().main()
