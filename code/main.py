@@ -58,17 +58,17 @@ class GA:
         return selected_text
 
     def init_func(self):
-        plt.cla()
         plt.xlabel('Number of iterations')
-        plt.gca().get_xaxis().set_major_formatter(plt.FuncFormatter(lambda x, loc: "{:d}".format(int(x))))
         plt.ylabel('Total distance')
-        plt.gca().get_yaxis().set_major_formatter(plt.FuncFormatter(lambda x, loc: "{:,}".format(int(x))))
-        plt.title(f'Fastest Keyboard: {self.Top_keyboard[0]}', loc='left')
         plt.legend(loc='lower left')
 
     def show_result(self, frame):
         self.genetic_algorithm()
         result = pd.DataFrame({'Fastest': self.Fastest, 'Average': self.Average, 'Control': self.Control})
+        plt.cla()
+        plt.gca().get_xaxis().set_major_formatter(plt.FuncFormatter(lambda x, loc: "{:d}".format(int(x))))
+        plt.gca().get_yaxis().set_major_formatter(plt.FuncFormatter(lambda x, loc: "{:,}".format(int(x))))
+        plt.title(f'Fastest Keyboard: {self.Top_keyboard[0]}', loc='left')
         
         line1, = plt.plot(result.index, result.Fastest, label=f'Fastest: {self.Fastest[-1] if self.Fastest else "no data"}', color='red')
         line2, = plt.plot(result.index, result.Average, label=f'Average: {self.Average[-1] if self.Average else "no data"}', color='blue')
