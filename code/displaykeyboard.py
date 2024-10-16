@@ -29,13 +29,13 @@ class Keyboard():
         if finger_group:
             self.finger_group = finger_group
         else:
-            self.finger_group = np.array([0, 1, 2, 3, 3, 4, 4, 5, 6, 7,
+            self.finger_group = [0, 1, 2, 3, 3, 4, 4, 5, 6, 7,
                                           0, 1, 2, 3, 3, 4, 4, 5, 6,
-                                          0, 1, 2, 3, 3, 4, 4])
+                                          0, 1, 2, 3, 3, 4, 4]
         if finger_default_key:
             self.finger_key = finger_default_key
         else:
-            self.finger_key = np.array([None]*8)
+            self.finger_key = [None]*8
         if keyboard:
             self.keyboard:dict = keyboard
         else:
@@ -96,7 +96,7 @@ class Keyboard():
 
     def save(self, filename, t)->None:
         data = {'Keybard': self.keyboard,
-                'FingerGroup': self.finger_group, 'FingerKey': self.finger_key}
+                'FingerGroup': list(self.finger_group), 'FingerKey': list(self.finger_key)}
         with open(rf'result/{t}/{filename}_{t}.json', 'w') as file:
             file.write(json.dumps(data))
 
