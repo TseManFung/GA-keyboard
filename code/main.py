@@ -33,7 +33,6 @@ class GA:
 
             for key in current_key_chanjie:
                 total_distance += kb.finger_distance(key)
-        kb.set_total_distance(total_distance)
         return total_distance
 
     def random_text(self,length:int=5000):
@@ -57,7 +56,6 @@ class GA:
     def init_func(self):
         plt.xlabel('Number of iterations')
         plt.ylabel('Total distance')
-        plt.legend(loc='lower left')
 
     def show_result(self, frame):
         self.genetic_algorithm()
@@ -76,19 +74,21 @@ class GA:
         return line1, line2,line3
 
     # GA
-    def Top4(self,population: list[Keyboard], chinese_str:str):
+    def find_top_keyboard(self,population: list[Keyboard], chinese_str:str):
         """ p= mp.Pool(mp.cpu_count())
         for kb in tqdm(population,desc='calculate distance'):
             p.apply_async(self.check_total_distance, args=(kb,chinese_str))
         p.close()
         p.join() """
         for kb in tqdm(population,desc='calculate distance'):
-            self.check_total_distance(kb,chinese_str)
+            kb.Total_Distance = self.check_total_distance(kb,chinese_str)
         population.sort(key=lambda x: x.Total_Distance)
         self.Fastest.append(population[0].Total_Distance)
         self.Average.append(sum([kb.Total_Distance for kb in population])/len(population))
         self.Control.append(self.check_total_distance(self.control_kb, chinese_str))
-        self.Top_keyboard = population[:int(10*(1-10*self.mutation_rate))]+self.random_keyboard(int(10*self.mutation_rate))
+        parent_size = self.population_size//10
+        random_size = int(parent_size*self.mutation_rate)
+        self.Top_keyboard = population[:parent_size-random_size]+self.random_keyboard(random_size)
 
     def crossover(self,population_size:int,Top_keyboard: list[Keyboard]):
         next_gen = []
@@ -132,11 +132,13 @@ class GA:
             return
         if not self.Fastest:
             population = self.init_population()
-            self.Top4(population, self.random_text(self.text_length))
+            self.find_top_keyboard(population, self.random_text(self.text_length))
         population = self.crossover(self.population_size,self.Top_keyboard)
-        self.Top4(population, self.random_text(self.text_length))
+        self.find_top_keyboard(population, self.random_text(self.text_length))
         gc.collect()
         self.generations -= 1
+        if self.Average[-1]==self.Fastest:
+            self.generations=1
 
     def __init__(self, population_size: int = 256, generations: int = 1000,text_length:int=5000,mutation_rate:float=0.2):
         self.population_size = population_size
