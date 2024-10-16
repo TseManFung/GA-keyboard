@@ -185,8 +185,28 @@ class GA:
 
 
 if __name__ == "__main__":
-    ga = GA(50, 10, 500)
-    ga.set_cpu_core(2)
+    while True:
+        population_size = int(input("Enter the population size(default = 256), must >=40: "))
+        if population_size >= 40:
+            break
+    while True:
+        generations = int(input("Enter the number of generations(default = 1000), must >=1: "))
+        if generations >= 1:
+            break
+    while True:
+        text_length = int(input("Enter the length of the text(default = 5000), must >=100: "))
+        if text_length >= 100:
+            break
+    while True:
+        mutation_rate = float(input("Enter the mutation rate(default = 0.2), must between 0 and 1: "))
+        if 0 <= mutation_rate <= 1:
+            break
+    while True:
+        cpu_core = int(input(f"Enter the number of CPU cores(default = {mp.cpu_count()}), must between 1 and {mp.cpu_count()}: "))
+        if 1 <= cpu_core <= mp.cpu_count():
+            break
+    ga = GA(population_size=population_size, generations=generations,text_length=text_length, mutation_rate=mutation_rate)
+    ga.set_cpu_core(count=cpu_core)
     fig, ax = plt.subplots()
     ani = FuncAnimation(fig, ga.show_result,frames=100,init_func=ga.main, interval=200)
     fig.set_size_inches(12.8, 7.2)
