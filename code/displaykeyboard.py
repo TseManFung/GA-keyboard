@@ -20,6 +20,9 @@ class Keyboard():
 
     Total_Distance = 0
 
+    def set_total_distance(self, total_distance):
+        self.Total_Distance = total_distance
+    
     def __init__(self, finger_group: list = None, finger_default_key=None, keyboard: dict = None):
         if finger_group:
             self.finger_group = finger_group
