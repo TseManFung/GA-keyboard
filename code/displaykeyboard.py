@@ -2,12 +2,14 @@
 import json
 from numba import jit
 import numpy as np
+from random import shuffle
 
 
 class Keyboard():
     @classmethod
     def set_new_keyboard(cls, DNA_key_list: list):
         new_keyboard = {}
+        shuffle(DNA_key_list)
         for DNA_key in DNA_key_list:
             for key, pos in DNA_key.items():
                 if pos not in new_keyboard.values():
