@@ -61,6 +61,7 @@ class GA:
 
     # GA
     def find_top_keyboard(self, population: list[Keyboard], chinese_str: str):
+        population.append(self.tk)
         with mp.Pool(self.cpu_count) as pool:
             distance_result = pool.starmap(self.check_total_distance,
                                            [(kb, chinese_str)
@@ -68,7 +69,8 @@ class GA:
         for i in range(len(population)):
             population[i].Total_Distance = distance_result[i]
         population.sort(key=lambda x: x.Total_Distance)
-        self.Fastest.append(population[0].Total_Distance)
+        self.tk = population[0]
+        self.Fastest.append(self.tk.Total_Distance)
         self.Average.append(
             sum([kb.Total_Distance for kb in population]) / len(population))
         self.Control.append(
@@ -146,7 +148,7 @@ class GA:
         self.Fastest = []
         self.Average = []
         self.Control = []
-        self.control_kb = Keyboard()
+        self.tk = self.control_kb = Keyboard()
         self.Top_keyboard = [self.control_kb]
         self.df = pd.DataFrame({
             'Fastest': self.Fastest,
@@ -157,17 +159,19 @@ class GA:
     def init_func(self):
         # plt.ion()
         plt.xlabel('Number of iterations')
-        plt.ylabel('Total distance')
+        plt.ylabel('distance increase rate (%)')
+        
 
     def format_x_axis(self, x, loc):
         return "{:d}".format(int(x))
 
     def format_y_axis(self, x, loc):
-        return "{:,}".format(int(x))
+        return "{:d}".format(int(x*100))
 
     def show_result(self, f):
         result = self.df
         plt.cla()
+        self.init_func()
         plt.gca().get_xaxis().set_major_formatter(
             plt.FuncFormatter(self.format_x_axis))
         plt.gca().get_yaxis().set_major_formatter(
@@ -175,19 +179,19 @@ class GA:
         plt.title(f'Fastest Keyboard: {self.Top_keyboard[0]}', loc='left')
         plt.plot(
             result.index,
-            result.Fastest,
+            (result.Control-result.Fastest)/result.Control,
             label=f'Fastest: {self.Fastest[-1]
                               if self.Fastest else "no data"}',
             color='red')
         plt.plot(
             result.index,
-            result.Average,
+            (result.Control-result.Average)/result.Control,
             label=f'Average: {self.Average[-1]
                               if self.Average else "no data"}',
             color='blue')
         plt.plot(
             result.index,
-            result.Control,
+            1-1,
             label=f'Control: {self.Control[-1]
                               if self.Control else "no data"}',
             color='black')
