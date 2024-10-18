@@ -3,6 +3,7 @@ import json
 import os
 from random import choice
 import matplotlib.pyplot as plt
+from numpy import sqrt
 import pandas as pd
 import gc
 from displaykeyboard import Keyboard
@@ -75,9 +76,10 @@ class GA:
             sum([kb.Total_Distance for kb in population]) / len(population))
         self.Control.append(
             self.check_total_distance(self.control_kb, chinese_str))
-        parent_size = self.population_size // 10
+        parent_size = sqrt(self.population_size)
         random_size = int(parent_size * self.mutation_rate)
-        self.Top_keyboard = population[:parent_size -
+        print(f"{parent_size=}, {random_size=}")
+        self.Top_keyboard = population[:int(parent_size) -
                                        random_size] + self.random_keyboard(
                                            random_size)
 
@@ -132,7 +134,10 @@ class GA:
         if not os.path.exists(rf'result/{t}'):
             os.makedirs(rf'result/{t}')
         self.Top_keyboard[0].save("keyboard", t)
-        self.fig.savefig(rf'result/{t}/chart_{t}.png')
+        try:
+            self.fig.savefig(rf'result/{t}/chart_{t}.png')
+        except:
+            pass
 
     def __init__(self,
                  population_size: int = 256,
@@ -176,7 +181,7 @@ class GA:
             plt.FuncFormatter(self.format_x_axis))
         plt.gca().get_yaxis().set_major_formatter(
             plt.FuncFormatter(self.format_y_axis))
-        plt.title(f'Fastest Keyboard: {self.Top_keyboard[0]}', loc='left')
+        plt.title(f'Fastest Keyboard: {self.tk}', loc='left')
         plt.plot(
             result.index,
             (result.Control-result.Fastest)/result.Control,
@@ -191,19 +196,21 @@ class GA:
             color='blue')
         plt.plot(
             result.index,
-            1-1,
+            result.Control-result.Control,
             label=f'Control: {self.Control[-1]
                               if self.Control else "no data"}',
             color='black')
         plt.legend(loc='lower left')
 
-    def main(self):
+    def main(self,join=False):
         self.unicode2cangjie = self.read_json(
             r"dataset\cangjie\unicode2cangjie.json")
         self.fig = fig
         self.init_func()
         ga_thread = Thread(target=self.genetic_algorithm)
         ga_thread.start()
+        if join:
+            ga_thread.join()
 
     def set_cpu_core(self, count: int = mp.cpu_count()):
         self.cpu_count = count
@@ -242,14 +249,14 @@ if __name__ == "__main__":
     if text_length < 100:
         print("The length of the text set to default 5000")
         text_length = 5000
-
+    min_mutation_rate = 1/sqrt(population_size)
     mutation_rate = To_float(
         input(
-            "Enter the mutation rate(default = 0.2), must between 0 and 1: "))
+            f"Enter the mutation rate(suggest to use default = {min_mutation_rate}), must between 0 and 1: "))
     if mutation_rate < 0 or mutation_rate > 1:
-        print("The mutation rate set to default 0.2")
+        print(f"The mutation rate set to default {min_mutation_rate}")
         mutation_rate = 0.2
-    max_cpu_core = mp.cpu_count()
+    max_cpu_core = mp.cpu_count()-1
     cpu_core = To_int(
         input(
             f"Enter the number of CPU cores(default = {max_cpu_core}), must between 1 and {
@@ -258,13 +265,25 @@ if __name__ == "__main__":
     if cpu_core < 1 or cpu_core > max_cpu_core:
         print(f"The number of CPU cores set to default {max_cpu_core}")
         cpu_core = max_cpu_core
+    animate_chart = input("Do you want to animate the chart?(y/n) (default y): ")
+
+
     ga = GA(population_size=population_size,
             generations=generations,
             text_length=text_length,
             mutation_rate=mutation_rate)
     ga.set_cpu_core(count=cpu_core)
     fig, ax = plt.subplots()
-    ani = FuncAnimation(fig, ga.show_result, init_func=ga.main,
-                        cache_frame_data=False, repeat=False)
+    if animate_chart.lower() == 'n':
+        ga.main(join=True)
+        ga.show_result(fig)
+    else:
+        ani = FuncAnimation(fig, ga.show_result, init_func=ga.main,
+                            cache_frame_data=False, repeat=False)
     fig.set_size_inches(8, 8)
     plt.show()
+    if animate_chart.lower() == 'n':
+        t = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+        if not os.path.exists(rf'result/{t}'):
+            os.makedirs(rf'result/{t}')
+        fig.savefig(rf'result/{t}/chart_{t}.png')
