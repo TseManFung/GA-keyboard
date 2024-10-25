@@ -113,6 +113,7 @@ class GA:
         return kb_pop
 
     def genetic_algorithm(self):
+        global t
         if not self.Fastest:
             population = self.init_population()
             self.find_top_keyboard(population,
@@ -133,10 +134,8 @@ class GA:
         if not os.path.exists(rf'result/{t}'):
             os.makedirs(rf'result/{t}')
         self.Top_keyboard[0].save("keyboard", t)
-        try:
-            self.fig.savefig(rf'result/{t}/chart_{t}.png')
-        except:
-            pass
+
+            
 
     def __init__(self,
                  population_size: int = 256,
@@ -275,16 +274,16 @@ if __name__ == "__main__":
             mutation_rate=mutation_rate)
     ga.set_cpu_core(count=cpu_core)
     fig, ax = plt.subplots()
+    fig.set_size_inches(8, 8)
     if animate_chart.lower() == 'n':
-        ga.main(join=True,fig=fig)
+        ga.main(join=True)
         ga.show_result(fig)
     else:
         ani = FuncAnimation(fig, ga.show_result, init_func=ga.main,
                             cache_frame_data=False, repeat=False)
-    fig.set_size_inches(8, 8)
     plt.show()
     if animate_chart.lower() == 'n':
-        t = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+        #t = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
         if not os.path.exists(rf'result/{t}'):
             os.makedirs(rf'result/{t}')
         fig.savefig(rf'result/{t}/chart_{t}.png')
