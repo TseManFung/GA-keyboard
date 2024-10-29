@@ -274,16 +274,26 @@ if __name__ == "__main__":
             mutation_rate=mutation_rate)
     ga.set_cpu_core(count=cpu_core)
     fig, ax = plt.subplots()
-    if animate_chart.lower() == 'n':
-        ga.main(join=True)
-        ga.show_result(fig)
-    else:
-        ani = FuncAnimation(fig, ga.show_result, init_func=ga.main,
-                            cache_frame_data=False, repeat=False)
-    fig.set_size_inches(8, 8)
-    plt.show()
-    if animate_chart.lower() == 'n':
-        t = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-        if not os.path.exists(rf'result/{t}'):
-            os.makedirs(rf'result/{t}')
-        fig.savefig(rf'result/{t}/chart_{t}.png')
+    try:
+        if animate_chart.lower() == 'n':
+            ga.main(join=True)
+            ga.show_result(fig)
+        else:
+            ani = FuncAnimation(fig, ga.show_result, init_func=ga.main,
+                                cache_frame_data=False, repeat=False)
+        fig.set_size_inches(8, 8)
+        plt.show()
+        if animate_chart.lower() == 'n':
+            t = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+            if not os.path.exists(rf'result/{t}'):
+                os.makedirs(rf'result/{t}')
+            fig.savefig(rf'result/{t}/chart_{t}.png')
+    except KeyboardInterrupt:
+        if animate_chart.lower() == 'n':
+            t = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+            if not os.path.exists(rf'result/{t}'):
+                os.makedirs(rf'result/{t}')
+            ga.Top_keyboard[0].save("keyboard", t)
+            fig.savefig(rf'result/{t}/chart_{t}.png')
+        plt.show()
+        
