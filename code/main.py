@@ -78,7 +78,6 @@ class GA:
             self.check_total_distance(self.control_kb, chinese_str))
         parent_size = sqrt(self.population_size)
         random_size = int(parent_size * self.mutation_rate)
-        print(f"{parent_size=}, {random_size=}")
         self.Top_keyboard = population[:int(parent_size) -
                                        random_size] + self.random_keyboard(
                                            random_size)
@@ -114,6 +113,7 @@ class GA:
         return kb_pop
 
     def genetic_algorithm(self):
+        global t
         if not self.Fastest:
             population = self.init_population()
             self.find_top_keyboard(population,
@@ -134,10 +134,8 @@ class GA:
         if not os.path.exists(rf'result/{t}'):
             os.makedirs(rf'result/{t}')
         self.Top_keyboard[0].save("keyboard", t)
-        try:
-            self.fig.savefig(rf'result/{t}/chart_{t}.png')
-        except:
-            pass
+
+            
 
     def __init__(self,
                  population_size: int = 256,
@@ -175,34 +173,36 @@ class GA:
 
     def show_result(self, f):
         result = self.df
-        plt.cla()
+       # plt.cla()
         self.init_func()
         plt.gca().get_xaxis().set_major_formatter(
             plt.FuncFormatter(self.format_x_axis))
         plt.gca().get_yaxis().set_major_formatter(
             plt.FuncFormatter(self.format_y_axis))
         plt.title(f'Fastest Keyboard: {self.tk}', loc='left')
+        fastestRate =(result.Control-result.Fastest)/result.Control
+        averageRate =(result.Control-result.Average)/result.Control
+        gap = (fastestRate - averageRate)
         plt.plot(
             result.index,
-            (result.Control-result.Fastest)/result.Control,
+            fastestRate,
             label=f'Fastest: {self.Fastest[-1]
                               if self.Fastest else "no data"}',
             color='red')
         plt.plot(
             result.index,
-            (result.Control-result.Average)/result.Control,
+            averageRate,
             label=f'Average: {self.Average[-1]
                               if self.Average else "no data"}',
             color='blue')
         plt.plot(
             result.index,
-            result.Control-result.Control,
-            label=f'Control: {self.Control[-1]
-                              if self.Control else "no data"}',
+            gap,
+            label=f'The gap between Fastest and Average : {gap.iloc[-1]*100:.2f}%\nControl: {self.Control[-1] if self.Control else "no data"}',
             color='black')
         plt.legend(loc='lower left')
 
-    def main(self,join=False):
+    def main(self,join=False,fig=None):
         self.unicode2cangjie = self.read_json(
             r"dataset\cangjie\unicode2cangjie.json")
         self.fig = fig
@@ -274,26 +274,16 @@ if __name__ == "__main__":
             mutation_rate=mutation_rate)
     ga.set_cpu_core(count=cpu_core)
     fig, ax = plt.subplots()
-    try:
-        if animate_chart.lower() == 'n':
-            ga.main(join=True)
-            ga.show_result(fig)
-        else:
-            ani = FuncAnimation(fig, ga.show_result, init_func=ga.main,
-                                cache_frame_data=False, repeat=False)
-        fig.set_size_inches(8, 8)
-        plt.show()
-        if animate_chart.lower() == 'n':
-            t = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-            if not os.path.exists(rf'result/{t}'):
-                os.makedirs(rf'result/{t}')
-            fig.savefig(rf'result/{t}/chart_{t}.png')
-    except KeyboardInterrupt:
-        if animate_chart.lower() == 'n':
-            t = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-            if not os.path.exists(rf'result/{t}'):
-                os.makedirs(rf'result/{t}')
-            ga.Top_keyboard[0].save("keyboard", t)
-            fig.savefig(rf'result/{t}/chart_{t}.png')
-        plt.show()
-        
+    fig.set_size_inches(8, 8)
+    if animate_chart.lower() == 'n':
+        ga.main(join=True)
+        ga.show_result(fig)
+    else:
+        ani = FuncAnimation(fig, ga.show_result, init_func=ga.main,
+                            cache_frame_data=False, repeat=False)
+    plt.show()
+    if animate_chart.lower() == 'n':
+        #t = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+        if not os.path.exists(rf'result/{t}'):
+            os.makedirs(rf'result/{t}')
+        fig.savefig(rf'result/{t}/chart_{t}.png')
