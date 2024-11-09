@@ -173,7 +173,7 @@ class GA:
 
     def show_result(self, f):
         result = self.df
-       # plt.cla()
+        plt.cla()
         self.init_func()
         plt.gca().get_xaxis().set_major_formatter(
             plt.FuncFormatter(self.format_x_axis))
@@ -198,7 +198,7 @@ class GA:
         plt.plot(
             result.index,
             gap,
-            label=f'The gap between Fastest and Average : {gap.iloc[-1]*100:.2f}%\nControl: {self.Control[-1] if self.Control else "no data"}',
+            label=f'The gap between Fastest and Average : {gap.iloc[-1]*100 if not gap.empty else 0:.2f}%\nControl: {self.Control[-1] if self.Control else "no data"}',
             color='black')
         plt.legend(loc='lower left')
 
