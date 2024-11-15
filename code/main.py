@@ -55,9 +55,12 @@ class GA:
         with open(text_file, 'r', encoding='utf-8') as file:
             text = file.readlines()
             total_lines = len(text)
-            start_line = choice(range(total_lines - length))
-            selected_lines = text[start_line:start_line + length]
-            selected_text = ''.join(selected_lines)
+            if(total_lines <= length):
+                selected_text = ''.join(text)
+            else:
+                start_line = choice(range(total_lines - length))
+                selected_lines = text[start_line:start_line + length]
+                selected_text = ''.join(selected_lines)
         return selected_text
 
     # GA
